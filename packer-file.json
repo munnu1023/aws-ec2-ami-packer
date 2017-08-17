@@ -1,0 +1,53 @@
+
+{
+    "variables": {
+      "account_id": "1234567898",
+      "aws_access_key": "{{env `AWS_ACCESS_KEY`}}",
+      "aws_secret_key": "{{env `AWS_SECRET_KEY`}}",
+      "region": "us-east-2",
+      "region_kms_key_id": "{{env `AWS_KMS_KEY`}}",
+      "x509_cert_path": "C:/Users/user1/Desktop/x509-certs/x509-cert.pem",
+      "x509_key_path": "C:/Users/user1/Desktop/x509-certs/x509-key.pem",
+      "subnet_id": "subnet-08460f61",
+      "source_ami": "ami-8a7859ef"
+    },
+    "builders": [
+      {
+        "type": "amazon-instance",
+        "ami_name": "packer-ami",
+        "access_key": "{{user `aws_access_key`}}",
+        "secret_key": "{{user `aws_secret_key`}}",
+        "ami_regions": ["{{user `region`}}"],
+        "region": "{{user `region`}}",
+        "source_ami": "{{user `source_ami`}}",
+        "instance_type": "t2.micro",
+        "ssh_username": "ec2-user",
+        "subnet_id": "{{user `subnet_id`}}",
+        "account_id": "{{user `account_id`}}",
+        "s3_bucket": "naga-personal-bucket",
+        "x509_cert_path": "{{user `x509_cert_path`}}",
+        "x509_key_path": "{{user `x509_key_path`}}",
+        "bundle_vol_command": "sudo /opt/aws/bin/ec2-bundle-vol -k {{.KeyPath}}  -u {{.AccountId}} -c {{.CertPath}} -r {{.Architecture}} -e {{.PrivatePath}}/* -d {{.Destination}} -p {{.Prefix}} -B ami=sda1,root=/dev/sda1 --batch --no-filter",
+        "bundle_upload_command": "sudo /opt/aws/bin/ec2-upload-bundle -b {{.BucketName}} -m {{.ManifestPath}} -a {{.AccessKey}} -s {{.SecretKey}} -d {{.BundleDirectory}} --batch --location {{.Region}} --retry",
+        "region_kms_key_ids":{
+          "{{user `region`}}": "{{user `region_kms_key_id`}}"
+        },
+        "ami_block_device_mappings": [{
+          "device_name": "/dev/sda1",
+          "volume_type": "gp2",
+          "volume_size": 8,
+          "delete_on_termination": true,
+          "encrypted": true
+        }]
+        
+      }
+    ],
+    "provisioners": [
+      {
+        "type": "shell",
+        "inline":[
+            "ls"
+        ]}
+    ]
+  }
+  
